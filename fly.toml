@@ -1,0 +1,53 @@
+
+app = ""
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[build]
+  dockerfile = "Dockerfile"
+
+[mounts]
+  source="headscale"
+  destination="/var/lib/headscale"
+
+[[services]]
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = 10000
+    grace_period = "6s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    timeout = 2000
+    tls_skip_verify = true
+    [services.http_checks.headers]
+
+[[services]]
+  internal_port = 50443
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["tls"]
+    port = "50443"
+  [services.ports.tls_options]
+    alpn = ["h2"]
+
+[[services]]
+  internal_port = 3478
+  protocol = "udp"
+
+  [[services.ports]]
+    port = "3478"
