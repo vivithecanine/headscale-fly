@@ -1,0 +1,12 @@
+{
+	auto_https off
+	admin off
+}
+
+:8080 {
+	encode gzip
+	reverse_proxy /notifications/hub ${APP_NAME}.internal:3012
+	reverse_proxy ${APP_NAME}.internal:8080 {
+		header_up X-Real-IP {remote_host}
+	}
+}
